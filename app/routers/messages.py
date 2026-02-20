@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Response, Query
 from app.controllers.message_handler import process_message
 from app.config import settings
+from app.controllers.message_handler import handler # Importamos la instancia
 
 # Configuramos el router
 router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
@@ -28,15 +29,17 @@ async def verify_webhook(
 @router.post("")
 @router.post("/")
 async def receive_messages(request: Request):
-    try:
-        data = await request.json()
-        
-        # Enviamos la data a nuestro controlador (lógica de Ari)
-        await process_message(data)
-        
-        return {"status": "EVENT_RECEIVED"}
+    data = await request.json()
     
-    except Exception as e:
-        # Si algo falla en la lectura del JSON, devolvemos un 200 para que Meta 
-        # no reintente infinitamente el envío
-        return {"status": "error", "message": str(e)}
+    # Extraer datos básicos para el handler
+    entry = data.get("entry", [{}])[0]
+    changes = entry.get("changes", [{}])[0]
+    value = changes.get("value", {})
+    contacts = value.get("contacts", [{}])[0]
+    sender_name = contacts.get("profile", {}).get("name", "Usuario")
+    messages = value.get("messages", [{}])
+
+    if messages:
+        await handler.handle_incoming_message(messages[0], sender_name)
+    
+    return {"status": "EVENT_RECEIVED"}
