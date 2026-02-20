@@ -6,6 +6,11 @@ class RegistrationFlow:
     def __init__(self):
         self.user_sessions = {}
 
+    async def start_flow(self, to: str, reg_type: str):
+        self.user_sessions[to] = {'step': 'AWAITING_NAME', 'type': reg_type, 'data': {}}
+        tipo_texto = "Médico" if reg_type == 'medico' else "Farmacia"
+        await whatsapp_service.send_message(to, f"Iniciemos el registro de {tipo_texto}. ¿Cuál es el nombre? 📝")
+
     async def handle_text(self, to: str, text: str, message_id: str):
         session = self.user_sessions.get(to)
         if not session or "CONFIRMING" in session['step']: return
@@ -40,7 +45,6 @@ class RegistrationFlow:
         session = self.user_sessions.get(to)
         if not session: return
 
-        # Lógica de SI/NO para cada paso
         if button_id == 'yes_name':
             session['data']['nombre'] = session['temp_data']
             if session['type'] == 'medico':
@@ -59,10 +63,22 @@ class RegistrationFlow:
             session['step'] = 'AWAITING_ADDRESS'
             await whatsapp_service.send_message(to, "Entendido. Finalmente, ingresa la dirección del consultorio: 📍")
 
+        elif button_id == 'no_specialty':
+            session['step'] = 'AWAITING_SPECIALTY'
+            await whatsapp_service.send_message(to, "Escribe la especialidad nuevamente: 🎓")
+
         elif button_id == 'yes_address':
             session['data']['direccion'] = session['temp_data']
             await whatsapp_service.send_message(to, "✅ Registro completado. El equipo de sistemas procesará la info.")
-            del self.user_sessions[to] # Limpiar sesión
+            
+            # --- AQUÍ ESTABA EL DETALLE ---
+            # Estas dos líneas deben estar estrictamente dentro del 'elif yes_address'
+            del self.user_sessions[to]
+            await welcome_flow.send_menu(to, "¿Deseas realizar alguna otra acción?")
+
+        elif button_id == 'no_address':
+            session['step'] = 'AWAITING_ADDRESS'
+            await whatsapp_service.send_message(to, "Escribe la dirección nuevamente: 📍")
 
     async def ask_confirmation(self, to, body_text, confirm_type):
         buttons = [
@@ -70,13 +86,5 @@ class RegistrationFlow:
             {"type": "reply", "reply": {"id": f"no_{confirm_type}", "title": "No, corregir ✍️"}}
         ]
         await whatsapp_service.send_interactive_buttons(to, body_text, buttons)
-        await welcome_flow.send_menu(to, "¿Deseas realizar alguna otra acción?")
-        
-    async def start_flow(self, to: str, reg_type: str):
-        """Inicializa la sesión y envía el primer mensaje del formulario"""
-        self.user_sessions[to] = {'step': 'AWAITING_NAME', 'type': reg_type, 'data': {}}
-        
-        tipo_texto = "Médico" if reg_type == 'medico' else "Farmacia"
-        await whatsapp_service.send_message(to, f"Iniciemos el registro de {tipo_texto}. ¿Cuál es el nombre? 📝")
 
 registration_flow = RegistrationFlow()
