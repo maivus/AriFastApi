@@ -17,4 +17,11 @@ class WelcomeFlow:
         await whatsapp_service.send_message(to, welcome_text)
         await whatsapp_service.send_interactive_buttons(to, "¿En qué puedo ayudarte hoy?", buttons)
 
+    async def send_creation_menu(self, to: str):
+        buttons = [
+            {"type": "reply", "reply": {"id": "reg_medico", "title": "Médico 👨‍⚕️"}},
+            {"type": "reply", "reply": {"id": "reg_farmacia", "title": "Farmacia 🏥"}}
+        ]
+        await whatsapp_service.send_interactive_buttons(to, "¡Perfecto! ¿Qué deseas registrar hoy?", buttons)    
+
 welcome_flow = WelcomeFlow()

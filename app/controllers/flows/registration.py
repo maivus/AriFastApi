@@ -69,5 +69,12 @@ class RegistrationFlow:
             {"type": "reply", "reply": {"id": f"no_{confirm_type}", "title": "No, corregir ✍️"}}
         ]
         await whatsapp_service.send_interactive_buttons(to, body_text, buttons)
+        
+    async def start_flow(self, to: str, reg_type: str):
+        """Inicializa la sesión y envía el primer mensaje del formulario"""
+        self.user_sessions[to] = {'step': 'AWAITING_NAME', 'type': reg_type, 'data': {}}
+        
+        tipo_texto = "Médico" if reg_type == 'medico' else "Farmacia"
+        await whatsapp_service.send_message(to, f"Iniciemos el registro de {tipo_texto}. ¿Cuál es el nombre? 📝")
 
 registration_flow = RegistrationFlow()
