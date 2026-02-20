@@ -1,11 +1,24 @@
 from fastapi import FastAPI
-from app.routers import messages  # Importamos tu archivo de rutas
+from app.routers import messages  # Importamos el archivo que acabamos de arreglar
 
-app = FastAPI(title="Ari Chatbot")
+# Inicializamos la app
+app = FastAPI(
+    title="Ari Chatbot API",
+    description="Backend de Ari migrado de Node.js a FastAPI",
+    version="2.0.0"
+)
 
-# Conectamos las rutas del archivo messages.py
+# Configuración importante: Esto ayuda a que FastAPI sea más flexible con las URLs
+app.router.redirect_slashes = False
+
+# Incluimos las rutas del webhook
+# El prefijo ya está definido en el router, pero aquí lo confirmamos
 app.include_router(messages.router)
 
 @app.get("/")
-def inicio():
-    return {"status": "Servidor funcionando correctamente"}
+async def root():
+    return {
+        "message": "Ari API está en línea",
+        "plataforma": "FastAPI / Render",
+        "status": "active"
+    }
