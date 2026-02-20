@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request, Response, Query
 from app.controllers.message_handler import process_message
+from app.config import settings
 
 # Configuramos el router
 router = APIRouter(prefix="/webhook", tags=["WhatsApp Webhook"])
@@ -15,7 +16,7 @@ async def verify_webhook(
     # El token que configuraste en el panel de Meta
     VERIFY_TOKEN = "ari_token_2026" 
     
-    if token == VERIFY_TOKEN:
+    if token == settings.VERIFY_TOKEN:
         # Es vital devolver el challenge como texto plano para Meta
         return Response(content=str(challenge), media_type="text/plain")
     
