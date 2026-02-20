@@ -1,5 +1,6 @@
 import re
 from app.services import whatsapp_service
+from app.controllers.flows.welcome import welcome_flow
 
 class RegistrationFlow:
     def __init__(self):
@@ -69,6 +70,7 @@ class RegistrationFlow:
             {"type": "reply", "reply": {"id": f"no_{confirm_type}", "title": "No, corregir ✍️"}}
         ]
         await whatsapp_service.send_interactive_buttons(to, body_text, buttons)
+        await welcome_flow.send_menu(to, "¿Deseas realizar alguna otra acción?")
         
     async def start_flow(self, to: str, reg_type: str):
         """Inicializa la sesión y envía el primer mensaje del formulario"""
