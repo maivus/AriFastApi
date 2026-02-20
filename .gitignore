@@ -1,0 +1,16 @@
+# Entorno Virtual
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Variables de entorno (Seguridad)
+.env
+
+# Archivos del Sistema
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
